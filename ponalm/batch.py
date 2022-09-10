@@ -19,10 +19,10 @@ class Batch:
         return sum(self.lengths)
 
     def cuda(self):
-        self.inputs = self.inputs.cuda()
+        self.inputs = self.inputs.cuda(non_blocking = True)
 
         if self.outputs is not None:
-            self.outputs = self.outputs.cuda()
+            self.outputs = self.outputs.cuda(non_blocking = True)
 
         return self
 

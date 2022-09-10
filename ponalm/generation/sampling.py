@@ -1,13 +1,8 @@
 import numpy as np
 import torch
-from ponapt.batch import Batch
-from ponapt.collator import generate_square_subsequent_mask
+from ponalm.batch import Batch
 
-def top_p_sampling(
-        logit,
-        temperature,
-        top_p):
-
+def top_p_sampling(logit, temperature, top_p):
     logit = logit / temperature
     probs = torch.softmax(logit, dim = -1)
     values, indices = torch.sort(probs)
@@ -22,15 +17,17 @@ def top_p_sampling(
     return next_token
 
 
-def calc_logit(model, vocab, sent):
-    inputs = torch.tensor([[vocab.bos] + sent]).T
-    mask = generate_square_subsequent_mask(inputs.shape[0])
-    batch = Batch(inputs, mask = mask)
+def calc_logit(model, vocab, last_token, hidden_list):
+    inputs = torch.tensor([[last_token]]).T
+    lengths = torch.tensor([1])
+    batch = Batch(inputs, lengths = lengths)
+
     if torch.cuda.is_available():
         batch.cuda()
 
     with torch.no_grad():
-        pred = model(batch)
+        pred, hidden_list = model(batch, hidden_list = hidden_list)
+
     logit = pred[-1, 0, :]
-    return logit
+    return logit, hidden_list
 

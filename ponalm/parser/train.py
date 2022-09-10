@@ -1,15 +1,8 @@
 from ponalm.train.main import train_main
+from .model import parse_model_args
 
 def parse_args(parser):
-    parser.add_argument('--vocab', default = 'vocab.txt')
     parser.add_argument('--max-tokens', type = int, default = 4000)
-
-    parser.add_argument('--hidden-dim', type = int, default = 512)
-    parser.add_argument('--num-layers', type = int, default = 6)
-
-    parser.add_argument('--dropout', type = float, default = 0.3)
-    parser.add_argument('--word-dropout', type = float, default = 0.3)
-    parser.add_argument('--no-share-embedding', action = 'store_true')
 
     parser.add_argument('--label-smoothing', type = float, default = 0.0)
     parser.add_argument('--lr', type = float, default = 0.0001)
@@ -27,5 +20,6 @@ def parse_args(parser):
 def train(first):
     parser = first.add_parser('train')
     parse_args(parser)
+    parse_model_args(parser)
     parser.set_defaults(handler = train_main)
 

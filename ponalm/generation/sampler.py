@@ -1,75 +1,24 @@
 import torch
-from .sampling import (
-        top_p_sampling,
-        calc_logit)
+from ponalm.batch import Batch
+from .token_sampler import TokenSampler
 
 class SentenceSampler:
 
-    def __init__(
-            self,
-            vocab,
-            model):
-
+    def __init__(self, vocab, model):
         self.vocab = vocab
         self.model = model
 
-    def postproc_logit(
-            self,
-            logit,
-            index,
-            max_tokens,
-            stop_ratio,
-            beta,
-            avoid_eos,
-            terminal):
+    def make_hidden_list(self, sent):
+        inputs = torch.tensor([[self.vocab.bos] + sent[:-1]]).T
+        lengths = torch.tensor([inputs.shape[0]])
+        batch = Batch(inputs, lengths = lengths)
 
-        logit[self.vocab.pad] = float('-inf')
-        logit[self.vocab.bos] = float('-inf')
-        logit[self.vocab.unk] = float('-inf')
+        if torch.cuda.is_available():
+            batch.cuda()
 
-        if avoid_eos:
-            logit[self.vocab.eos] = float('-inf')
-            if terminal is not None:
-                for token in terminal:
-                    logit[token] = float('-inf')
-
-        if index > max_tokens * stop_ratio:
-            logit[self.vocab.eos] += (index - max_tokens * stop_ratio) * beta
-        return logit
-
-
-    def get_next_token(
-            self,
-            sent,
-            temperature,
-            top_p,
-            index,
-            max_tokens,
-            stop_ratio,
-            beta,
-            avoid_eos,
-            terminal):
-
-        logit = calc_logit(
-                self.model,
-                self.vocab,
-                sent)
-
-        logit = self.postproc_logit(
-                logit,
-                index,
-                max_tokens,
-                stop_ratio,
-                beta,
-                avoid_eos,
-                terminal)
-
-        next_token = top_p_sampling(
-                logit,
-                temperature,
-                top_p)
-
-        return next_token
+        with torch.no_grad():
+            _, hidden_list = self.model(batch)
+        return hidden_list
 
     def __call__(
             self,
@@ -84,26 +33,32 @@ class SentenceSampler:
 
         if sent is None:
             sent = []
+            last_token = self.vocab.bos
+            hidden_list = None
+        else:
+            sent = sent[:]
+            last_token = sent[-1]
+            hidden_list = self.make_hidden_list(sent)
 
-        for index in range(len(sent), max_tokens):
+        sampler = TokenSampler(
+                self.vocab, self.model,
+                index = len(sent),
+                last_token = last_token,
+                hidden_list = hidden_list,
+                temperature = temperature,
+                top_p = top_p,
+                max_tokens = max_tokens,
+                stop_ratio = stop_ratio,
+                beta = beta,
+                min_len = min_len,
+                terminal = terminal)
 
-            avoid_eos = (min_len is not None) and (index < min_len)
-
-            next_token = self.get_next_token(
-                    sent,
-                    temperature,
-                    top_p,
-                    index,
-                    max_tokens,
-                    stop_ratio,
-                    beta,
-                    avoid_eos,
-                    terminal)
-
+        while sampler.index <= max_tokens:
+            next_token = sampler()
             if next_token == self.vocab.eos:
                 break
             sent.append(next_token)
-            if terminal is not None and next_token in terminal:
+            if (terminal is not None) and (next_token in terminal):
                 break
 
         return sent

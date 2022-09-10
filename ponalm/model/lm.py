@@ -8,6 +8,7 @@ class PonaLM(nn.Module):
             self,
             d_vocab,
             d_model,
+            d_rnn,
             dropout,
             word_dropout,
             num_layers,
@@ -24,7 +25,7 @@ class PonaLM(nn.Module):
 
         self.num_layers = num_layers
         self.layers = nn.ModuleList([
-            PonaLMLayer(d_model, dropout)
+            PonaLMLayer(d_model, d_rnn, dropout)
             for _
             in range(num_layers)])
 

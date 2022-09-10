@@ -15,13 +15,18 @@ from ponalm.train.opter import Opter
 from ponalm.train.losscalc import PonaLMLossCalc
 from ponalm.train.trainer import Trainer
 
-from logging import getLogger
-logger = getLogger(__name__)
-
 def load_dataset(name):
     data = Seriejo('data/{}'.format(name))
     dataset = Dataset(data)
     return dataset
+
+
+def make_loader(dataset, sampler, collator):
+    return DataLoader(
+            dataset,
+            batch_sampler = sampler,
+            collate_fn = collator,
+            pin_memory = True)
 
 
 def load_loaders(vocab, args):
@@ -30,15 +35,10 @@ def load_loaders(vocab, args):
     train_sampler = RandomSampler(train_dataset, args.max_tokens)
     valid_sampler = FixedSampler(valid_dataset, args.max_tokens)
     collator = Collator(vocab)
-    train_loader = DataLoader(
-            train_dataset,
-            batch_sampler = train_sampler,
-            collate_fn = collator)
-    valid_loader = DataLoader(
-            valid_dataset,
-            batch_sampler = valid_sampler,
-            collate_fn = collator)
+    train_loader = make_loader(train_dataset, train_sampler, collator)
+    valid_loader = make_loader(valid_dataset, valid_sampler, collator)
     return train_loader, valid_loader
+
 
 def train_main(args):
     print(args)
@@ -47,10 +47,6 @@ def train_main(args):
     train_loader, valid_loader = load_loaders(vocab, args)
 
     model = get_lm_model(vocab, args)
-    model = model.cuda()
-    logger.info('#params : {} ({})'.format(
-        sum(p.numel() for p in model.parameters()),
-        sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
     opter = Opter(
             model,

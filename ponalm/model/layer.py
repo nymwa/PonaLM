@@ -5,13 +5,14 @@ from torch.nn.utils.rnn import pad_packed_sequence as unpack
 
 class PonaLMLayer(nn.Module):
 
-    def __init__(self, d_model, dropout, nonlinearity = 'relu'):
+    def __init__(self, d_model, d_rnn, dropout, nonlinearity = 'relu'):
         super().__init__()
-        self.fc1 = nn.Linear(d_model, d_model)
-        self.fc2 = nn.Linear(d_model, d_model)
+        self.fc1 = nn.Linear(d_model, d_rnn)
+        self.fc2 = nn.Linear(d_rnn, d_model)
+        self.rnn = nn.RNN(d_rnn, d_rnn, nonlinearity = nonlinearity)
         self.act = nn.ReLU()
-        self.rnn = nn.RNN(d_model, d_model, nonlinearity = nonlinearity)
-        self.norm = nn.LayerNorm(d_model)
+        self.ln = nn.LayerNorm(d_model)
+        self.dropout = nn.Dropout(dropout)
 
     def forward_rnn(self, x, lengths, h, enforce_sorted):
         packed = pack(x, lengths, enforce_sorted = enforce_sorted)
@@ -28,6 +29,7 @@ class PonaLMLayer(nn.Module):
 
     def forward(self, x, lengths, h = None, enforce_sorted = True):
         z, h = self.forward_main(x, lengths, h, enforce_sorted)
-        x = self.norm(x + z)
+        z = self.dropout(z)
+        x = self.ln(x + z)
         return x, h
 

@@ -25,7 +25,7 @@ class PonaLMEmbedding(nn.Module):
     def forward(self, x):
         x = self.token_embedding(x)
         x = self.word_dropout(x)
-        x = self.norm(x)
         x = self.dropout(x)
+        x = self.norm(x)
         return x
 
