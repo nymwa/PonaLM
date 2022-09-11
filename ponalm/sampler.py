@@ -3,10 +3,11 @@ import random as rd
 
 class Sampler(torch.utils.data.Sampler):
 
-    def __init__(self, dataset, max_tokens):
+    def __init__(self, dataset, max_tokens, offset = 1):
         self.dataset = dataset
         self.max_tokens = max_tokens
         self.batches = None
+        self.offset = offset
 
     def generate_batches(self):
         indices = self.get_indices()
@@ -16,7 +17,7 @@ class Sampler(torch.utils.data.Sampler):
         max_len = 0
         for index in indices:
             acc += 1
-            this_len = self.dataset.lengths[index]
+            this_len = self.dataset.lengths[index] + self.offset
             max_len = max(max_len, this_len)
             if (acc * max_len) > self.max_tokens:
                 batches.append(batch)

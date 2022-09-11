@@ -1,10 +1,10 @@
 def parse_model_args(parser):
     parser.add_argument('--vocab', default = 'vocab.txt')
-    parser.add_argument('--model', default = 'model.pt')
+    parser.add_argument('--model')
 
-    parser.add_argument('--hidden-dim', type = int, default = 512)
-    parser.add_argument('--rnn-dim', type = int, default = 128)
-    parser.add_argument('--num-layers', type = int, default = 128)
+    parser.add_argument('--hidden-dim', type = int, default = 256)
+    parser.add_argument('--rnn-dim', type = int, default = 256)
+    parser.add_argument('--num-layers', type = int, default = 64)
 
     parser.add_argument('--dropout', type = float, default = 0.3)
     parser.add_argument('--word-dropout', type = float, default = 0.1)

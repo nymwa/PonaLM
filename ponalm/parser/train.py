@@ -2,9 +2,9 @@ from ponalm.train.main import train_main
 from .model import parse_model_args
 
 def parse_args(parser):
-    parser.add_argument('--max-tokens', type = int, default = 4000)
+    parser.add_argument('--max-tokens', type = int, default = 8000)
 
-    parser.add_argument('--label-smoothing', type = float, default = 0.0)
+    parser.add_argument('--label-smoothing', type = float, default = 0.01)
     parser.add_argument('--lr', type = float, default = 0.0001)
     parser.add_argument('--weight-decay', type = float, default = 0.01)
     parser.add_argument('--max-grad-norm', type = float, default = 1.0)
@@ -12,8 +12,8 @@ def parse_args(parser):
     parser.add_argument('--warmup-steps', type = int, default = 4000)
     parser.add_argument('--start-factor', type = float, default = 1.0)
 
-    parser.add_argument('--epochs', type = int, default = 200)
-    parser.add_argument('--step-interval', type = int, default = 1)
+    parser.add_argument('--epochs', type = int, default = 300)
+    parser.add_argument('--step-interval', type = int, default = 4)
     parser.add_argument('--save-interval', type = int, default = 10)
 
 
