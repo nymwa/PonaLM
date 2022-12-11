@@ -34,7 +34,7 @@ class TokenSampler:
         self.min_len = min_len
 
     def p_avoid_eos(self):
-        return (self.min_len is not None) and (self.index < min_len)
+        return (self.min_len is not None) and (self.index < self.min_len)
 
     def postproc_logit(self, logit):
         logit[self.vocab.pad] = float('-inf')
@@ -43,8 +43,8 @@ class TokenSampler:
 
         if self.p_avoid_eos():
             logit[self.vocab.eos] = float('-inf')
-            if terminal is not None:
-                for token in terminal:
+            if self.terminal is not None:
+                for token in self.terminal:
                     logit[token] = float('-inf')
 
         if self.index > self.max_tokens * self.stop_ratio:
