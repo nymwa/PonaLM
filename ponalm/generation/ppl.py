@@ -5,9 +5,9 @@ from ponalm.vocab import load_vocab
 from ponalm.train.model import get_lm_model
 
 from seriejo import Seriejo
-from ponapt.dataset import Dataset
+from ponalm.dataset import Dataset
 
-from ponapt.batch import Batch
+from ponalm.batch import Batch
 
 from logging import getLogger
 logger = getLogger(__name__)
