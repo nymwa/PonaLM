@@ -3,6 +3,7 @@ from .preproc import preproc
 from .train import train
 from .sample import sample
 from .ppl import ppl
+from .long import long
 
 def parse_args():
     parser = ArgumentParser()
@@ -12,6 +13,7 @@ def parse_args():
     train(first)
     sample(first)
     ppl(first)
+    long(first)
 
     return parser.parse_args()
 
