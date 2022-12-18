@@ -1,10 +1,12 @@
+import sys
+import logging
 from ponalm.vocab import load_vocab
 from ponalm.train.model import get_lm_model
 
+from ilonimi import Normalizer
 from ponalm.preproc.postproc import LMPostproc
 from ponalm.generation.token_sampler import TokenSampler
 
-from tqdm import tqdm
 
 def prepare_prefix(args, vocab):
     preproc = LMPreproc()
@@ -25,6 +27,7 @@ def prepare_terminal(args, vocab):
 
 
 def long_main(args):
+    logging.getLogger().setLevel(logging.ERROR)
     vocab = load_vocab(args.vocab)
     model = get_lm_model(vocab, args)
     model.eval()
@@ -42,12 +45,15 @@ def long_main(args):
             terminal = None,
             min_len = args.max_len)
 
-    sent = []
-    for _ in tqdm(range(args.max_len), bar_format = '{l_bar}{r_bar}'):
-        sent.append(sampler())
-
     postproc = LMPostproc()
-    sent = ' '.join([vocab[x] for x in sent])
-    sent = postproc(sent)
-    print(sent)
+    normalizer = Normalizer()
+    sent = []
+    line = ''
+    for _ in range(args.max_len):
+        sent.append(sampler())
+        new_line = normalizer(postproc(' '.join([vocab[x] for x in sent])))
+        if ' ' in new_line[len(line):]:
+            print(new_line[len(line):], end = '')
+            sys.stdout.flush()
+            line = new_line
 
