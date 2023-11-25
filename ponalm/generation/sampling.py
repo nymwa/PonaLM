@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from ponalm.batch import Batch
 
+
 def top_p_sampling(logit, temperature, top_p):
     logit = logit / temperature
     probs = torch.softmax(logit, dim = -1)

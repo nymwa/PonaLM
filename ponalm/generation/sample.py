@@ -1,9 +1,11 @@
+import numpy as np
 from ponalm.vocab import load_vocab
 from ponalm.train.model import get_lm_model
 
 from ponalm.preproc.preproc import LMPreproc
 from ponalm.preproc.postproc import LMPostproc
 from ponalm.generation.sampler import SentenceSampler
+
 
 def prepare_prefix(args, vocab):
     preproc = LMPreproc()
@@ -35,8 +37,8 @@ def sample_main(args):
     sampler = SentenceSampler(vocab, model)
 
     for i in range(args.iters):
-        sent = sampler(sent = prefix, terminal = terminal)
+        sent, probs = sampler(sent = prefix, terminal = terminal)
         sent = ' '.join([vocab[x] for x in sent])
         sent = postproc(sent)
-        print(sent)
+        print(np.log(probs).sum(), '\t', sent)
 

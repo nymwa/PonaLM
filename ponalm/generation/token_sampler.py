@@ -1,6 +1,8 @@
+import torch
 from .sampling import (
         top_p_sampling,
         calc_logit)
+
 
 class TokenSampler:
 
@@ -51,7 +53,7 @@ class TokenSampler:
             logit[self.vocab.eos] += (self.index - self.max_tokens * self.stop_ratio) * self.beta
         return logit
 
-    def __call__(self):
+    def __call__(self, output_prob = False):
         logit, self.hidden_list = calc_logit(
                 self.model,
                 self.vocab,
@@ -60,5 +62,11 @@ class TokenSampler:
         logit = self.postproc_logit(logit)
         self.index += 1
         self.last_token = top_p_sampling(logit, self.temperature, self.top_p)
-        return self.last_token
+
+        if output_prob:
+            probs = torch.softmax(logit, dim = -1)
+            prob = float(probs[self.last_token])
+            return self.last_token, prob
+        else:
+            return self.last_token
 

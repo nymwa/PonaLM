@@ -2,6 +2,7 @@ import torch
 from ponalm.batch import Batch
 from .token_sampler import TokenSampler
 
+
 class SentenceSampler:
 
     def __init__(self, vocab, model):
@@ -53,13 +54,15 @@ class SentenceSampler:
                 min_len = min_len,
                 terminal = terminal)
 
+        probs = []
         while sampler.index <= max_tokens:
-            next_token = sampler()
+            next_token, prob = sampler(output_prob = True)
             if next_token == self.vocab.eos:
                 break
             sent.append(next_token)
+            probs.append(prob)
             if (terminal is not None) and (next_token in terminal):
                 break
 
-        return sent
+        return sent, probs
 
